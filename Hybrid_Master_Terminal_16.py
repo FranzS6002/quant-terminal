@@ -37,10 +37,9 @@ if not check_password():
     st.stop()  # HIER STOPPT DAS SKRIPT! Alles darunter wird erst geladen, wenn das Passwort stimmt.
 
 # ==========================================
-# HIER FOLGT DEIN NORMALER CODE...
-# DEFAULT_SHOW_TODAY = True
-# 🔥 NEU: DEIN KONTROLLZENTRUM FÜR DEN NEUSTART 🔥
+# 🔥 DEIN KONTROLLZENTRUM FÜR DEN NEUSTART 🔥
 # Ändere hier 'True' auf 'False', wenn etwas beim kompletten App-Start standardmäßig AUS sein soll.
+# ==========================================
 DEFAULT_SHOW_TODAY = True
 DEFAULT_SHOW_TRACKING = True
 DEFAULT_SHOW_PERF = True
@@ -371,7 +370,34 @@ if not data.empty:
         st.subheader("🏆 Momentum-Rangliste")
         
         current_scores = score.iloc[-1]
+        
+        # ==========================================
+        # 🔥 GROßES MULTI-LINE-CHART FÜR DIE TOP 4 🔥
+        # ==========================================
+        st.markdown("**📈 Top 4 ETFs: 21-Tage Score-Trend**")
+        
+        # Die Ticker der Top 4 ETFs holen
+        top_4_tkrs = current_scores.sort_values(ascending=False).index[:4]
+        
+        # Letzte 21 Tage des Scores extrahieren und in % umwandeln
+        history_21d = score[top_4_tkrs].tail(21) * 100 
+        
+        # 1. Spaltennamen in lesbare Namen umwandeln (HIER WIRD CHART_DATA ERSTELLT)
+        chart_data = history_21d.rename(columns=lambda x: test_tickers.get(x, x))
+        
+        # 2. Alle Datenpunkte im Chart auf 2 Nachkommastellen runden
+        chart_data = chart_data.round(2)
+        
+        # 3. Den großen, interaktiven Chart zeichnen
+        st.line_chart(chart_data)
+        
+        # ==========================================
+        # BESTEHENDE RANGLISTE (inkl. 14 Tage)
+        # ==========================================
+        st.markdown("**📋 Komplette Score-Übersicht**")
+        
         score_5d = score.iloc[-6] if len(score) >= 6 else pd.Series(np.nan, index=score.columns)
+        score_14d = score.iloc[-15] if len(score) >= 15 else pd.Series(np.nan, index=score.columns)
         score_21d = score.iloc[-22] if len(score) >= 22 else pd.Series(np.nan, index=score.columns)
         
         top_all = current_scores.sort_values(ascending=False)
@@ -383,6 +409,7 @@ if not data.empty:
                 "ETF": test_tickers.get(tkr, tkr), 
                 "Score aktuell": val,
                 "Score 5 Tage": score_5d[tkr],
+                "Score 14 Tage": score_14d[tkr],
                 "Score 21 Tage": score_21d[tkr],
                 "Status": "🟢 OK" if ok else "🔴 SMA-Sperre"
             })
@@ -392,6 +419,7 @@ if not data.empty:
         format_dict = {
             'Score aktuell': '{:.2%}',
             'Score 5 Tage': '{:.2%}',
+            'Score 14 Tage': '{:.2%}',
             'Score 21 Tage': '{:.2%}'
         }
         
