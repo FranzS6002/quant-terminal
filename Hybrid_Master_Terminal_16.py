@@ -12,39 +12,14 @@ warnings.filterwarnings('ignore')
 # ==========================================
 st.set_page_config(page_title="Hybrid Quant Terminal", page_icon="🏛️", layout="wide")
 
-# 🔥 NEU: DER TÜRSTEHER (PASSWORTSCHUTZ) 🔥
-def check_password():
-    def password_entered():
-        # Vergleicht die Eingabe mit dem geheimen Passwort auf dem Server
-        if st.session_state["password"] == st.secrets["app_password"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Passwort aus dem Zwischenspeicher löschen
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # Ersteingabe
-        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
-        return False
-    elif not st.session_state["password_correct"]:
-        # Falsches Passwort
-        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
-        st.error("😕 Falsches Passwort. Zugriff verweigert.")
-        return False
-    return True
-
-if not check_password():
-    st.stop()  # HIER STOPPT DAS SKRIPT! Alles darunter wird erst geladen, wenn das Passwort stimmt.
-
 # ==========================================
 # 🔥 DEIN KONTROLLZENTRUM FÜR DEN NEUSTART 🔥
-# Ändere hier 'True' auf 'False', wenn etwas beim kompletten App-Start standardmäßig AUS sein soll.
 # ==========================================
 DEFAULT_SHOW_TODAY = True
 DEFAULT_SHOW_TRACKING = True
 DEFAULT_SHOW_PERF = True
 DEFAULT_SHOW_SCREENER = True
-DEFAULT_SHOW_CHART = False      # <--- Kapitalkurve beim Neustart dauerhaft AUS!
+DEFAULT_SHOW_CHART = False      
 DEFAULT_SHOW_LOG = True
 DEFAULT_SHOW_UNIVERSE = False
 DEFAULT_SHOW_MANUAL = False
@@ -174,19 +149,23 @@ st.sidebar.markdown("---")
 # ==========================================
 if app_mode == "🚀 Satelliten (Offensive)":
     st.title("🚀 Satelliten Master-System")
-    st.markdown("Quantitatives Management-Dashboard | Die 50% Offensive")
+    st.markdown("Quantitatives Management-Dashboard")
     data = data_sat
     test_tickers = sat_tickers
     def_buy = 2; def_hyst = 2; def_sma = 85; def_puffer = 3.2
     default_start_date = datetime(2024, 1, 1)
+    # Anzeige des aktiven Motors
+    st.sidebar.info("⚡ **Fast-Twitch Score aktiv:**\n\n1M: **40%** | 3M: **10%** | 6M: **0%** | 12M: **50%**")
 
 elif app_mode == "🏦 Core (Fundament)":
     st.title("🏦 Core Master-System")
-    st.markdown("Quantitatives Management-Dashboard | Das 50% All-Weather Fundament")
+    st.markdown("Quantitatives Management-Dashboard | Das All-Weather Fundament")
     data = data_core
     test_tickers = core_tickers
     def_buy = 3; def_hyst = 1; def_sma = 200; def_puffer = 2.8
     default_start_date = datetime(2021, 1, 1)
+    # Anzeige des aktiven Motors
+    st.sidebar.info("⚖️ **Klassischer Score aktiv:**\n\nGleichgewichtung (je 25%)")
 
 # --- Sidebar Parameter für das aktive System ---
 st.sidebar.header("⚙️ Strategie-Einstellungen")
@@ -225,13 +204,28 @@ show_log = st.sidebar.checkbox("📋 System-Logbuch", key="opt_log")
 show_universe = st.sidebar.checkbox("🌌 ETF-Universum", key="opt_universe")
 show_manual = st.sidebar.checkbox("📘 System-Handbuch", key="opt_manual")
 
-# --- Mathematische Kern-Maschine ---
+# ==========================================
+# 🔥 MATHEMATISCHE KERN-MASCHINE 🔥
+# ==========================================
 if not data.empty:
     daily_returns = data.pct_change()
     sma = data.rolling(SMA_DAYS).mean()
     panic_level = sma * (1 - (SMA_BUFFER_PCT / 100))
     
-    score = (data.pct_change(21) + data.pct_change(63) + data.pct_change(126) + data.pct_change(252)) / 4
+    # -----------------------------------------------------
+    # NEU: Unterscheidung der Score-Gewichtung nach Modus!
+    # -----------------------------------------------------
+    if app_mode == "🚀 Satelliten (Offensive)":
+        # Der optimierte Fast-Twitch Score (40 / 10 / 0 / 50)
+        score = (data.pct_change(21) * 0.40) + \
+                (data.pct_change(63) * 0.10) + \
+                (data.pct_change(126) * 0.00) + \
+                (data.pct_change(252) * 0.50)
+    else:
+        # Klassische Gleichgewichtung für den Core (25 / 25 / 25 / 25)
+        score = (data.pct_change(21) + data.pct_change(63) + data.pct_change(126) + data.pct_change(252)) / 4
+    # -----------------------------------------------------
+
     prev_ranks = score.shift(1).rank(axis=1, ascending=False, na_option='bottom')
     is_above_sma = (data.shift(1) > panic_level.shift(1))
 
@@ -376,19 +370,10 @@ if not data.empty:
         # ==========================================
         st.markdown("**📈 Top 4 ETFs: 21-Tage Score-Trend**")
         
-        # Die Ticker der Top 4 ETFs holen
         top_4_tkrs = current_scores.sort_values(ascending=False).index[:4]
-        
-        # Letzte 21 Tage des Scores extrahieren und in % umwandeln
         history_21d = score[top_4_tkrs].tail(21) * 100 
-        
-        # 1. Spaltennamen in lesbare Namen umwandeln (HIER WIRD CHART_DATA ERSTELLT)
         chart_data = history_21d.rename(columns=lambda x: test_tickers.get(x, x))
-        
-        # 2. Alle Datenpunkte im Chart auf 2 Nachkommastellen runden
         chart_data = chart_data.round(2)
-        
-        # 3. Den großen, interaktiven Chart zeichnen
         st.line_chart(chart_data)
         
         # ==========================================
@@ -503,7 +488,7 @@ if not data.empty:
             Das System überwacht täglich 35 sorgfältig ausgewählte ETFs aus den Bereichen Technologie (KI, Halbleiter, Cloud), Rohstoffe (Uran, Goldminen), Krypto und spezifischen Länder-/Faktor-Indizes.
 
             ### 3. Die 4 Säulen der Quant-Logik
-            * **Säule 1: Der Momentum-Score (Relative Stärke):** Die Rangliste wird täglich aus dem Durchschnitt der Renditen über 1, 3, 6 und 12 Monate berechnet. Nur die absolut stärksten Trends setzen sich hier durch.
+            * **Säule 1: Der Momentum-Score (Relative Stärke):** Die Rangliste wird täglich aus dem gewichteten Durchschnitt der Renditen berechnet. Der Fast-Twitch Motor fokussiert sich stark auf aktuelle Ausbrüche (40% auf 1 Monat) und den soliden Jahrestrend (50% auf 12 Monate), ignoriert aber Störgeräusche im mittelfristigen Bereich.
             * **Säule 2: SMA 85 & 3,2 % Puffer (Die absolute Notbremse):** Da Satelliten massiv schwanken, fungiert die 85-Tage-Linie als schneller Trendfilter. Der 3,2 % Puffer ist der mathematische Sweet-Spot, um normale 2-Tages-Korrekturen auszusitzen, aber bei echten Trendbrüchen den Stecker zu ziehen. Fällt der Kurs auf Tagesschlussbasis unter dieses Puffer-Level, wird **sofort am nächsten Tag verkauft**.
             * **Säule 3: Die Hysterese (Halte-Zone zur Kostenreduktion):** Das System ist auf `Buy Rank 2` und `Hold Rank 4` (Hysterese 2) eingestellt. Es kauft streng nur die Top 2. Ist ein ETF aber einmal im Depot, darf er beim Rebalancing bis auf Platz 4 abrutschen, ohne verkauft zu werden. Das verhindert teures Hin- und Her-Traden ("Whipsaw").
             * **Säule 4: Strikte State-Machine (Der Cooldown):** Die wichtigste Fehlerbereinigung im Code! Fliegt ein ETF durch die Notbremse raus, ist er gesperrt. Er darf **nicht** sofort wieder gekauft werden, nur weil er am nächsten Tag über den SMA zuckt. Er muss auf der Strafbank bleiben, bis das nächste 14-Tage-Rebalancing ansteht UND er sich wieder regulär in die Top 2 hochgekämpft hat.
@@ -527,10 +512,10 @@ if not data.empty:
             Das Core-Portfolio bildet das **All-Weather Fundament** deines Gesamtdepots (50 % Kapitalgewichtung). Während die Satelliten für Rendite sorgen, hat der Core nur eine primäre Aufgabe: **Absoluten Kapitalschutz in Krisen**. Das System ist darauf optimiert, den Drawdown (Max DD) auf ca. -11 % bis -12 % zu begrenzen, selbst wenn Aktienmärkte um -30 % einbrechen (wie z.B. 2022).
 
             ### 2. Das Anlage-Universum
-            Das System überwacht 8 hochliquide, wenig korrelierende Basis-Märkte: S&P 500, Europa 600, MSCI Japan, Emerging Markets, Globale Anleihen (Hedged), Gold, Immobilien und Rohstoffe. *(Hinweis: Der reine Euro-Bond ETF wurde bewusst entfernt, um gefährliche Klumpenrisiken in der Anleihen-Klasse zu vermeiden).*
+            Das System überwacht 8 hochliquide, wenig korrelierende Basis-Märkte: S&P 500, Europa 600, MSCI Japan, Emerging Markets, Globale Anleihen (Hedged), Gold, Immobilien und Rohstoffe.
 
             ### 3. Die 4 Säulen der Quant-Logik
-            * **Säule 1: Der Momentum-Score (Relative Stärke):** Exakt wie bei den Satelliten werden die Renditen über 1, 3, 6 und 12 Monate gemittelt, um die Kapitalflüsse der großen Institutionellen zu tracken.
+            * **Säule 1: Der Momentum-Score (Relative Stärke):** Hier wird ganz klassisch stoisch und gleichgewichtet (je 25%) auf 1, 3, 6 und 12 Monate gemittelt, um die Kapitalflüsse der großen Institutionellen zu tracken.
             * **Säule 2: SMA 200 & 2,8 % Puffer (Der Fels in der Brandung):** Für breite Indizes ist die 200-Tage-Linie der globale Goldstandard. Der 2,8 % Puffer ist dein fehlerbereinigter Sweet-Spot. Er gibt dem Markt genau genug Luft, um die berüchtigten "Bärenfallen" (False Breakdowns) an der 200-Tage-Linie zu ignorieren, zieht bei einem echten Crash aber verlässlich und unemotional die Reißleine.
             * **Säule 3: Die Hysterese (Halte-Zone zur Kostenreduktion):** Das System ist auf `Buy Rank 3` und `Hold Rank 4` (Hysterese 1) eingestellt. Es kauft die Top 3 Basis-Märkte. Ein Asset darf beim Rebalancing bis auf Platz 4 abrutschen, bevor es ausgetauscht wird. Dies sorgt für extrem niedrige Transaktionskosten (historisch unter 1 Trade pro Monat).
             * **Säule 4: Strikte State-Machine (Der Cooldown):** Einmal raus ist raus! Wird der 200-Tage-SMA inkl. Puffer nach unten durchbrochen, geht der Anteil unwiderruflich in Cash. Ein Wiedereinstieg ("Re-Entry") erfolgt erst beim nächsten offiziellen Rebalancing-Termin, falls das Asset dann wieder in den Top 3 steht. Das schützt den Core vor zermürbenden Seitwärtsphasen.
