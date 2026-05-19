@@ -13,6 +13,31 @@ warnings.filterwarnings('ignore')
 st.set_page_config(page_title="Hybrid Quant Terminal", page_icon="🏛️", layout="wide")
 
 # ==========================================
+# 🔥 NEU: DER TÜRSTEHER (PASSWORTSCHUTZ) 🔥
+# ==========================================
+def check_password():
+    def password_entered():
+        # Vergleicht die Eingabe mit dem geheimen Passwort auf dem Server
+        if st.session_state["password"] == st.secrets["app_password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Passwort aus dem Zwischenspeicher löschen
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # Ersteingabe
+        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
+        return False
+    elif not st.session_state["password_correct"]:
+        # Falsches Passwort
+        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
+        st.error("😕 Falsches Passwort. Zugriff verweigert.")
+        return False
+    return True
+
+if not check_password():
+    st.stop()  # HIER STOPPT DAS SKRIPT! Alles darunter wird erst geladen, wenn das Passwort stimmt.# ==========================================
+
 # 🔥 DEIN KONTROLLZENTRUM FÜR DEN NEUSTART 🔥
 # ==========================================
 DEFAULT_SHOW_TODAY = True
