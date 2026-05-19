@@ -13,30 +13,46 @@ warnings.filterwarnings('ignore')
 st.set_page_config(page_title="Hybrid Quant Terminal", page_icon="🏛️", layout="wide")
 
 # ==========================================
-# 🔥 NEU: DER TÜRSTEHER (PASSWORTSCHUTZ) 🔥
+# 🔒 KUGELSICHERER PASSWORTSCHUTZ
 # ==========================================
 def check_password():
     def password_entered():
-        # Vergleicht die Eingabe mit dem geheimen Passwort auf dem Server
-        if st.session_state["password"] == st.secrets["app_password"]:
+        # 1. Sicherer Abruf der Eingabe (verhindert den KeyError!)
+        eingabe = st.session_state.get("password", "")
+        
+        # 2. Sicherer Abruf des Cloud-Passworts
+        try:
+            geheimnis = st.secrets["app_password"]
+        except KeyError:
+            st.error("🚨 Cloud-Fehler: Du musst 'app_password' in den Streamlit App-Einstellungen (Secrets) hinterlegen!")
+            return
+            
+        # 3. Die Prüfung
+        if eingabe == geheimnis:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Passwort aus dem Zwischenspeicher löschen
+            if "password" in st.session_state:
+                del st.session_state["password"]  # Sauber aufräumen
         else:
             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
-        # Ersteingabe
-        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
-        return False
-    elif not st.session_state["password_correct"]:
-        # Falsches Passwort
-        st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", type="password", on_change=password_entered, key="password")
+    # Wenn bereits erfolgreich eingeloggt, direkt durchwinken
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Eingabefeld anzeigen
+    st.text_input("🔒 Bitte Passwort eingeben, um das Terminal zu entsperren", 
+                  type="password", 
+                  on_change=password_entered, 
+                  key="password")
+    
+    # Fehlermeldung bei falscher Eingabe
+    if "password_correct" in st.session_state and not st.session_state["password_correct"]:
         st.error("😕 Falsches Passwort. Zugriff verweigert.")
-        return False
-    return True
+        
+    return False
 
 if not check_password():
-    st.stop()  # HIER STOPPT DAS SKRIPT! Alles darunter wird erst geladen, wenn das Passwort stimmt.# ==========================================
+    st.stop() # HIER STOPPT DAS SKRIPT!
 
 # 🔥 DEIN KONTROLLZENTRUM FÜR DEN NEUSTART 🔥
 # ==========================================
