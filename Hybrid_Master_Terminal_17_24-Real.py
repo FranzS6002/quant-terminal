@@ -242,7 +242,7 @@ if show_real_life:
     st.sidebar.caption("Real-Life Parameter")
     real_capital = st.sidebar.number_input("Startkapital (€)", value=150000, step=10000)
     real_tax = st.sidebar.number_input("Steuersatz inkl. Soli (%)", value=26.375, step=0.1) / 100.0
-    real_fee = st.sidebar.number_input("Ordergebühr Xetra (€)", value=13.00, step=0.5)
+    real_fee = st.sidebar.number_input("Ordergebühr Xetra (€)", value=18.00, step=0.5)
 
 # ==========================================
 # 🔥 MATHEMATISCHE KERN-MASCHINE 🔥
