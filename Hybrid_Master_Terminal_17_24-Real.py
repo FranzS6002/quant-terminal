@@ -68,7 +68,7 @@ sat_tickers = {
     "ARAW.DE": "Raw Materials", "QUTM.DE": "Quantum Comp.", "MTVR.DE": "Metaverse",
     "IS0D.DE": "Oil & Gas E&P", "V9N.DE": "Data Centers", "IEVD.DE": "EV Driving Tech",
     "XMOV.DE": "Future Mobility", "XAIX.DE": "AI & Big Data", "ZPRR.DE": "Russell 2000",
-    "EXSC.DE": "Europe Small", "2B76.DE": "Robo & Automation",  
+    "EXSC.DE": "Europe Small", "2B76.DE": "Robo & Automation", "CBRS.DE": "F.T.Cybersecurity", 
     "WTAI.DE": "Applied AI", "EUFN": "Europe Financials", "GNOM.MI": "Genomics",
     "XDPE.DE": "Private Equity", "2B77.DE": "Ageing Pop", "GOAI.DE": "Robotics & AI",
     "IQQQ.DE": "Water", "REUSE.MI": "Circular Economy", "SNSR.MI": "IoT",
