@@ -234,7 +234,7 @@ if app_mode == "🚀 Satelliten (Offensive)":
     st.markdown("Quantitatives Management-Dashboard")
     data = data_sat
     test_tickers = sat_tickers
-    def_buy = 2; def_hyst = 5; def_sma = 85; def_puffer = 3.2; def_rebal = 16
+    def_buy = 2; def_hyst = 4; def_sma = 85; def_puffer = 3.2; def_rebal = 16
     default_start_date = datetime(2024, 1, 1)
     st.sidebar.info("⚡ **Fast-Twitch Score aktiv:**\n\n1M: **40%** | 3M: **10%** | 6M: **0%** | 12M: **50%**")
 
@@ -243,7 +243,7 @@ elif app_mode == "🏦 Core (Fundament)":
     st.markdown("Quantitatives Management-Dashboard | Das All-Weather Fundament")
     data = data_core
     test_tickers = core_tickers
-    def_buy = 3; def_hyst = 1; def_sma = 200; def_puffer = 2.8; def_rebal = 14
+    def_buy = 3; def_hyst = 2; def_sma = 200; def_puffer = 2.8; def_rebal = 14
     default_start_date = datetime(2021, 1, 1)
     st.sidebar.info("⚖️ **Klassischer Score aktiv:**\n\nGleichgewichtung (je 25%)")
     
