@@ -225,8 +225,6 @@ with st.spinner('Lade Marktdaten im Hintergrund...'):
 st.sidebar.title("🏛️ Master Terminal")
 app_mode = st.sidebar.radio("🧭 Modus wählen:", ["🚀 Satelliten (Offensive)", "🏦 Core (Fundament)"])
 st.sidebar.markdown("---")
-
-st.sidebar.markdown("---") 
 if st.sidebar.button("🗑️ Cache manuell leeren"):
     st.cache_data.clear()
     st.sidebar.success("Cache geleert! Lade die Seite neu.")
